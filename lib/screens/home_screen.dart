@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/workout_provider.dart';
 import 'achievements_screen.dart';
 import 'exercise_selection_screen.dart';
+import 'session_summary_screen.dart';
 import 'stats_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -114,6 +115,7 @@ class _SessionsTab extends StatelessWidget {
                 child: const Icon(Icons.delete, color: Colors.white),
               ),
               direction: DismissDirection.endToStart,
+              confirmDismiss: (_) => _confirmDelete(context, session.name),
               onDismissed: (_) => provider.deleteSession(session.id),
               child: ListTile(
                 leading: const Icon(Icons.event_note),
@@ -125,7 +127,9 @@ class _SessionsTab extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ExerciseSelectionScreen(session: session),
+                    builder: (_) => session.isEnded
+                        ? SessionSummaryScreen(session: session)
+                        : ExerciseSelectionScreen(session: session),
                   ),
                 ),
               ),
@@ -134,5 +138,30 @@ class _SessionsTab extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context, String sessionName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete workout?'),
+        content: Text(
+          'This will permanently delete "$sessionName" and all logged sets. '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
   }
 }
