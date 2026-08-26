@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../data/mock_friends_repository.dart';
+import '../data/friend_achievement_repository.dart';
 import '../models/friend_achievement.dart';
 
 class AchievementsScreen extends StatefulWidget {
@@ -12,7 +12,7 @@ class AchievementsScreen extends StatefulWidget {
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
-  final _repository = MockFriendsRepository();
+  final _repository = FriendAchievementRepository();
   late Future<List<FriendAchievement>> _future;
 
   @override

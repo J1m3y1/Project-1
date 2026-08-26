@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'gym_tracker.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -42,6 +42,18 @@ class DatabaseHelper {
           FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
         )
       ''');
+    }
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS friend_achievements (
+          id TEXT PRIMARY KEY,
+          friendName TEXT NOT NULL,
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          date TEXT NOT NULL
+        )
+      ''');
+      await _seedFriendAchievements(db);
     }
   }
 
@@ -75,7 +87,55 @@ class DatabaseHelper {
       )
     ''');
 
+    await db.execute('''
+      CREATE TABLE friend_achievements (
+        id TEXT PRIMARY KEY,
+        friendName TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        date TEXT NOT NULL
+      )
+    ''');
+
     await _seedDefaultExercises(db);
+    await _seedFriendAchievements(db);
+  }
+
+  Future<void> _seedFriendAchievements(Database db) async {
+    final now = DateTime.now();
+    final defaults = <Map<String, Object?>>[
+      {
+        'id': 'fa_alex_bench',
+        'friendName': 'Alex',
+        'title': 'New PR: Bench Press',
+        'description': 'Hit 225 lbs x 3 reps',
+        'date': now.subtract(const Duration(hours: 5)).toIso8601String(),
+      },
+      {
+        'id': 'fa_sam_streak',
+        'friendName': 'Sam',
+        'title': '7-day streak',
+        'description': 'Worked out 7 days in a row',
+        'date': now.subtract(const Duration(days: 1)).toIso8601String(),
+      },
+      {
+        'id': 'fa_jordan_deadlift',
+        'friendName': 'Jordan',
+        'title': 'New PR: Deadlift',
+        'description': 'Hit 405 lbs x 1 rep',
+        'date': now.subtract(const Duration(days: 2)).toIso8601String(),
+      },
+      {
+        'id': 'fa_casey_milestone',
+        'friendName': 'Casey',
+        'title': '50 workouts logged',
+        'description': 'Reached 50 total sessions tracked',
+        'date': now.subtract(const Duration(days: 4)).toIso8601String(),
+      },
+    ];
+    for (final achievement in defaults) {
+      await db.insert('friend_achievements', achievement);
+    }
   }
 
   Future<void> _seedDefaultExercises(Database db) async {
