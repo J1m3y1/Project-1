@@ -42,7 +42,9 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
         title: Text(widget.session.name),
         actions: [
           TextButton(
-            onPressed: () => _endWorkout(context),
+            onPressed: widget.session.isEnded
+                ? null
+                : () => _endWorkout(context),
             child: const Text('End Workout'),
           ),
         ],
@@ -73,15 +75,18 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                 ),
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                   itemCount: exercises.length,
                   itemBuilder: (context, index) {
                     final exercise = exercises[index];
                     final count = setCounts[exercise.id] ?? 0;
                     return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                      elevation: 2,
+                      color: Theme.of(context).colorScheme.surface,
+                      margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         leading: const Icon(Icons.fitness_center),
                         title: Text(exercise.name),
                         subtitle: Text(exercise.muscleGroup),
@@ -103,7 +108,9 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
     );
   }
 
-  void _endWorkout(BuildContext context) {
+  Future<void> _endWorkout(BuildContext context) async {
+    await context.read<WorkoutProvider>().endSession(widget.session.id);
+    if (!context.mounted) return;
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -146,7 +153,9 @@ class _SessionStatsPanel extends StatelessWidget {
         exerciseSets.fold<double>(0, (sum, s) => sum + s.volume);
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      elevation: 2,
+      color: Theme.of(context).colorScheme.surface,
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -157,18 +166,15 @@ class _SessionStatsPanel extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: selectedId,
-              isExpanded: true,
-              menuMaxHeight: kMinInteractiveDimension * 4,
-              items: loggedExercises
-                  .map((e) => DropdownMenuItem(
-                        value: e.id,
-                        child: Text(e.name),
-                      ))
+            DropdownMenu<String>(
+              initialSelection: selectedId,
+              expandedInsets: EdgeInsets.zero,
+              menuHeight: kMinInteractiveDimension * 4,
+              label: const Text('Exercise'),
+              dropdownMenuEntries: loggedExercises
+                  .map((e) => DropdownMenuEntry(value: e.id, label: e.name))
                   .toList(),
-              onChanged: onChanged,
-              decoration: const InputDecoration(labelText: 'Exercise'),
+              onSelected: onChanged,
             ),
             const SizedBox(height: 12),
             if (bestSet != null) ...[

@@ -30,6 +30,16 @@ class WorkoutRepository {
     await db.insert('sessions', session.toMap());
   }
 
+  Future<void> endSession(String sessionId, DateTime endedAt) async {
+    final db = await _dbHelper.database;
+    await db.update(
+      'sessions',
+      {'endedAt': endedAt.toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [sessionId],
+    );
+  }
+
   Future<void> deleteSession(String sessionId) async {
     final db = await _dbHelper.database;
     await db.delete('sets', where: 'sessionId = ?', whereArgs: [sessionId]);

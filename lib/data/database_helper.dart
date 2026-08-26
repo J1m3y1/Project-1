@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'gym_tracker.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -43,6 +43,13 @@ class DatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 5) {
+      final columns = await db.rawQuery('PRAGMA table_info(sessions)');
+      final hasEndedAt = columns.any((c) => c['name'] == 'endedAt');
+      if (!hasEndedAt) {
+        await db.execute('ALTER TABLE sessions ADD COLUMN endedAt TEXT');
+      }
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -58,7 +65,8 @@ class DatabaseHelper {
       CREATE TABLE sessions (
         id TEXT PRIMARY KEY,
         date TEXT NOT NULL,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        endedAt TEXT
       )
     ''');
 

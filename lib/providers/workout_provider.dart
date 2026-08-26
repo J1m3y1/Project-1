@@ -39,6 +39,12 @@ class WorkoutProvider extends ChangeNotifier {
     return session;
   }
 
+  Future<void> endSession(String sessionId) async {
+    await _repository.endSession(sessionId, DateTime.now());
+    _sessions = await _repository.getSessions();
+    notifyListeners();
+  }
+
   Future<void> deleteSession(String sessionId) async {
     await _repository.deleteSession(sessionId);
     _sessions = await _repository.getSessions();
