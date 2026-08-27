@@ -12,4 +12,21 @@ class FriendAchievement {
     required this.description,
     required this.date,
   });
+
+  Map<String, Object?> toMap() => {
+        'id': id,
+        'friendName': friendName,
+        'title': title,
+        'description': description,
+        'date': date.toIso8601String(),
+      };
+
+  factory FriendAchievement.fromMap(Map<String, Object?> map) =>
+      FriendAchievement(
+        id: map['id'] as String,
+        friendName: map['friendName'] as String,
+        title: map['title'] as String,
+        description: map['description'] as String,
+        date: DateTime.parse(map['date'] as String),
+      );
 }
